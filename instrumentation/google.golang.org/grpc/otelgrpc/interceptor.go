@@ -153,12 +153,16 @@ func (w *clientStream) RecvMsg(m interface{}) error {
 	err := w.ClientStream.RecvMsg(m)
 
 	if err == nil && !w.desc.ServerStreams {
+		logrus.Debug("otelgrpc RecvMsg() end event 1")
 		w.sendStreamEvent(receiveEndEvent, nil)
 	} else if err == io.EOF {
+		logrus.Debug("otelgrpc RecvMsg() end event 2")
 		w.sendStreamEvent(receiveEndEvent, nil)
 	} else if err != nil {
+		logrus.WithError(err).Debug("RecvMsg() error event")
 		w.sendStreamEvent(errorEvent, err)
 	} else {
+		logrus.Debug("otelgrpc RecvMsg()")
 		w.receivedMessageID++
 
 		if w.receivedEvent {
@@ -170,6 +174,7 @@ func (w *clientStream) RecvMsg(m interface{}) error {
 }
 
 func (w *clientStream) SendMsg(m interface{}) error {
+	logrus.Debug("otelgrpc SendMsg()")
 	err := w.ClientStream.SendMsg(m)
 
 	w.sentMessageID++
