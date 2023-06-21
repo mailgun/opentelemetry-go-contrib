@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	grpc_codes "google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -298,10 +299,16 @@ func StreamClientInterceptor(opts ...Option) grpc.StreamClientInterceptor {
 			err := <-stream.finished
 
 			if err != nil {
+				// DEBUG
+				span.AddEvent("Client stream error")
+				logrus.WithError(err).Error("Client stream error")
 				s, _ := status.FromError(err)
 				span.SetStatus(codes.Error, s.Message())
 				span.SetAttributes(statusCodeAttr(s.Code()))
 			} else {
+				// DEBUG
+				span.AddEvent("Client stream done")
+				logrus.Info("Client stream done")
 				span.SetAttributes(statusCodeAttr(grpc_codes.OK))
 			}
 
