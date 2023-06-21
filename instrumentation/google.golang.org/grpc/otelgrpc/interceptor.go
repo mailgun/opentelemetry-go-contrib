@@ -300,7 +300,9 @@ func StreamClientInterceptor(opts ...Option) grpc.StreamClientInterceptor {
 
 			if err != nil {
 				// DEBUG
-				span.AddEvent("Client stream error")
+				span.AddEvent("Client stream error", trace.WithAttributes(
+					attribute.String("status_message", err.Error()),
+				))
 				logrus.WithError(err).Error("Client stream error")
 				s, _ := status.FromError(err)
 				span.SetStatus(codes.Error, s.Message())
