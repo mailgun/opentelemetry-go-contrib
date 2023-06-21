@@ -213,18 +213,26 @@ func wrapClientStream(ctx context.Context, s grpc.ClientStream, desc *grpc.Strea
 	go func() {
 		defer close(eventsDone)
 
+		span := trace.SpanFromContext(ctx)
 		for {
 			select {
 			case event := <-events:
 				switch event.Type {
 				case receiveEndEvent:
+					span.AddEvent("Client stream end")
 					finished <- nil
 					return
 				case errorEvent:
+					span.AddEvent("Client stream error", trace.WithAttributes(
+						attribute.String("status_message", event.Err.Error()),
+					))
 					finished <- event.Err
 					return
 				}
 			case <-ctx.Done():
+				span.AddEvent("Client stream context canceled", trace.WithAttributes(
+					attribute.String("status_message", ctx.Err().Error()),
+				))
 				finished <- ctx.Err()
 				return
 			}
